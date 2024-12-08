@@ -13,6 +13,7 @@ const studentResultRoutes = require('./src/routes/studentResultRoutes');
 const User = require('./src/models/User'); // Import model User
 const bcrypt = require('bcrypt');
 const path = require('path');
+const fs = require('fs');
 
 const app = express()
 app.use(cors())
@@ -26,7 +27,32 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/exercise-testcases', exerciseTestcaseRoutes);
 app.use('/api/student-exercises', studentExerciseRoutes);
 app.use('/api/student-results', studentResultRoutes);
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
+// Tạo thư mục uploads nếu chưa tồn tại
+const uploadsPath = path.join(__dirname, 'uploads');
+const exercisesPath = path.join(uploadsPath, 'exercises');
+
+if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath);
+    console.log('Created uploads directory');
+}
+
+if (!fs.existsSync(exercisesPath)) {
+    fs.mkdirSync(exercisesPath);
+    console.log('Created exercises directory');
+}
+
+// Serve static files với logging
+app.use('/uploads', (req, res, next) => {
+    console.log('Accessing uploads:', req.url); // Debug log
+    express.static(path.join(__dirname, 'uploads'))(req, res, next);
+});
+
+// Specific route for exercises
+app.use('/uploads/exercises', (req, res, next) => {
+    console.log('Accessing exercises:', req.url); // Debug log
+    express.static(path.join(__dirname, 'uploads/exercises'))(req, res, next);
+});
 
 const createAdminUser = async () => {
     const adminEmail = process.env.ADMIN_EMAIL; // Đảm bảo bạn đã thiết lập biến môi trường này

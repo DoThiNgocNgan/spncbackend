@@ -1,79 +1,129 @@
 const Exercise = require('../models/Exercise');
-const ExerciseTestcase = require('../models/ExerciseTestcase');
+const fs = require('fs').promises;
+const path = require('path');
 
-// Tạo bài tập
 const createExercise = async (req, res) => {
     try {
-        const { lesson_id, user_id, code, title, difficulty, points, type, testCases } = req.body;
+        const {
+            course_id,
+            lesson_id,
+            code,
+            title,
+            type,
+            points,
+        } = req.body;
 
-        // Tạo bài tập
-        const newExercise = new Exercise({
+        const user_id = req.user._id;
+
+        // Validate required fields
+        if (!course_id || !lesson_id || !code || !title || !type || !points) {
+            return res.status(400).json({ message: 'All required fields must be provided' });
+        }
+
+        let pdfFilePath = null;
+        if (req.file) {
+            pdfFilePath = `/uploads/exercises/${req.file.filename}`;
+            console.log('PDF file path:', pdfFilePath);
+        }
+
+        const exercise = new Exercise({
+            course_id,
             lesson_id,
             user_id,
             code,
             title,
-            difficulty,
+            type,
             points,
-            type
+            pdfFile: pdfFilePath,
         });
-        const savedExercise = await newExercise.save();
 
-        // Nếu có test cases, tạo chúng
-        if (testCases && Array.isArray(testCases)) {
-            const testCasePromises = testCases.map(tc => {
-                const newTestCase = new ExerciseTestcase({
-                    exercise_id: savedExercise._id,
-                    input: tc.input,
-                    expected_output: tc.output
-                });
-                return newTestCase.save();
-            });
-            await Promise.all(testCasePromises);
+        await exercise.save();
+        console.log('Saved exercise:', exercise);
+        res.status(201).json(exercise);
+    } catch (error) {
+        console.error('Error creating exercise:', error);
+        res.status(500).json({ message: 'Error creating exercise' });
+    }
+};
+
+const getExercisesByCourse = async (req, res) => {
+    try {
+        const exercises = await Exercise.find({ course_id: req.params.courseId })
+            .populate('user_id', 'username email')
+            .populate('course_id', 'title')
+            .populate('lesson_id', 'title');
+        res.json(exercises);
+    } catch (error) {
+        console.error('Error in getExercisesByCourse:', error);
+        res.status(500).json({ message: 'Error fetching exercises' });
+    }
+};
+
+const getExercisesByLesson = async (req, res) => {
+    try {
+        console.log('Fetching exercises for lesson:', req.params.lessonId);
+        const exercises = await Exercise.find({ 
+            lesson_id: req.params.lessonId 
+        }).populate('user_id', 'username email');
+        
+        console.log('Found exercises:', exercises);
+        res.json(exercises);
+    } catch (error) {
+        console.error('Error in getExercisesByLesson:', error);
+        res.status(500).json({ 
+            message: 'Error fetching exercises',
+            error: error.message 
+        });
+    }
+};
+
+const getExerciseById = async (req, res) => {
+    try {
+        const exercise = await Exercise.findById(req.params.id)
+            .populate('user_id', 'username email')
+            .populate('course_id', 'title')
+            .populate('lesson_id', 'title');
+
+        if (!exercise) {
+            return res.status(404).json({ message: 'Exercise not found' });
         }
 
-        res.status(201).json(savedExercise);
+        res.json(exercise);
     } catch (error) {
-        console.error('Error in createExercise:', error);
-        res.status(500).json({ 
-            message: 'Server error', 
-            error: error.message,
-            stack: error.stack 
-        });
+        console.error('Error in getExerciseById:', error);
+        res.status(500).json({ message: 'Error fetching exercise' });
     }
 };
 
-// Lấy danh sách bài tập theo bài học
-const getExercisesByLesson = async (req, res) => {
-    const { lesson_id } = req.params;
-    try {
-        const exercises = await Exercise.find({ lesson_id });
-        res.status(200).json(exercises);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
-
-// Xóa bài tập
 const deleteExercise = async (req, res) => {
-    const { exercise_id } = req.params;
     try {
-        await Exercise.findByIdAndDelete(exercise_id);
-        res.status(200).json({ message: 'Exercise deleted successfully' });
+        const exercise = await Exercise.findById(req.params.id);
+        if (!exercise) {
+            return res.status(404).json({ message: 'Exercise not found' });
+        }
+
+        // Delete PDF file if exists
+        if (exercise.pdfFile) {
+            const filePath = path.join(__dirname, '../../', exercise.pdfFile);
+            try {
+                await fs.unlink(filePath);
+            } catch (error) {
+                console.error('Error deleting PDF file:', error);
+            }
+        }
+
+        await exercise.remove();
+        res.json({ message: 'Exercise deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Error in deleteExercise:', error);
+        res.status(500).json({ message: 'Error deleting exercise' });
     }
 };
 
-// Cập nhật bài tập
-const updateExercise = async (req, res) => {
-    const { exercise_id } = req.params;
-    const { title, difficulty, points, type } = req.body;
-    try {
-        const updatedExercise = await Exercise.findByIdAndUpdate(exercise_id, { title, difficulty, points, type }, { new: true });
-        res.status(200).json(updatedExercise);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
-
-module.exports = { createExercise, getExercisesByLesson, deleteExercise, updateExercise }; 
+module.exports = {
+    createExercise,
+    getExercisesByCourse,
+    getExercisesByLesson,
+    getExerciseById,
+    deleteExercise
+}; 
