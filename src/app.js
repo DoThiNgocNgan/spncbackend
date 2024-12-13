@@ -1,15 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const path = require('path');
 
 // Cấu hình CORS với options cụ thể hơn
 const corsOptions = {
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Cho phép cả localhost và 127.0.0.1
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: 'http://localhost:5173', // Frontend URL
     credentials: true,
-    optionsSuccessStatus: 204,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range']
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 // Áp dụng CORS cho tất cả routes
@@ -21,6 +20,9 @@ app.options('*', cors(corsOptions));
 // Body parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files từ thư mục public
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Routes
 app.use('/api/courses', require('./routes/courseRoutes'));
