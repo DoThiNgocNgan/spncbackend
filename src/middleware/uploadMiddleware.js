@@ -1,48 +1,41 @@
 const multer = require('multer');
 const path = require('path');
 
-// Cấu hình storage cho multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/exercises/')
+        cb(null, path.join(__dirname, '../../uploads/exercises'));
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, uniqueSuffix + path.extname(file.originalname))
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '.pdf');
     }
 });
 
-// Kiểm tra file type
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-        cb(null, true);
-    } else {
-        cb(new Error('Chỉ chấp nhận file PDF!'), false);
-    }
-};
-
-// Tăng giới hạn kích thước file lên 10MB
 const upload = multer({
     storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: 100 * 1024 * 1024 // Giới hạn 100MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only PDF files are allowed!'), false);
+        }
     }
 });
 
-// Middleware xử lý lỗi Multer
-const handleMulterError = (error, req, res, next) => {
-    if (error instanceof multer.MulterError) {
-        if (error.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({
-                message: 'File quá lớn. Kích thước tối đa là 10MB'
-            });
-        }
+// Middleware xử lý lỗi multer
+const handleMulterError = (err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+            message: 'File upload error',
+            error: err.message
+        });
+    } else if (err) {
+        return res.status(400).json({
+            message: 'Error uploading file',
+            error: err.message
+        });
     }
-    next(error);
+    next();
 };
 
-module.exports = {
-    upload,
-    handleMulterError
-}; 
+module.exports = { upload, handleMulterError }; 

@@ -12,13 +12,13 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 const { upload, handleMulterError } = require('../middleware/uploadMiddleware');
 
 // Routes với xử lý file
-router.post('/', 
-    authMiddleware, 
-    roleMiddleware(['admin', 'teacher']), 
+router.post('/', [
+    authMiddleware,
+    roleMiddleware(['admin', 'teacher']),
     upload.single('pdfFile'),
-    handleMulterError, 
+    handleMulterError,
     createExercise
-);
+]);
 
 // Các routes khác
 router.get('/course/:courseId', authMiddleware, getExercisesByCourse);

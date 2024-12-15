@@ -7,7 +7,7 @@ const path = require('path');
 const corsOptions = {
     origin: 'http://localhost:5173', // Frontend URL
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 
@@ -27,7 +27,11 @@ app.use('/public', express.static(path.join(__dirname, '../public')));
 // Routes
 app.use('/api/courses', require('./routes/courseRoutes'));
 app.use('/api/lessons', require('./routes/lessonRoutes'));
-app.use('/api/documents', require('./routes/documentRoutes'));
+app.use('/api/exercises', require('./routes/exerciseRoutes'));
+app.use('/api/submissions', require('./routes/submissionRoutes'));
+
+// Thêm headers cho phép truy cập PDF
+app.use('/uploads', cors(corsOptions), express.static(path.join(__dirname, '../uploads')));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

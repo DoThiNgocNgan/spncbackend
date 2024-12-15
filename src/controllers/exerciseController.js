@@ -4,44 +4,25 @@ const path = require('path');
 
 const createExercise = async (req, res) => {
     try {
-        const {
-            course_id,
-            lesson_id,
-            code,
-            title,
-            type,
-            points,
-        } = req.body;
-
-        const user_id = req.user._id;
-
-        // Validate required fields
-        if (!course_id || !lesson_id || !code || !title || !type || !points) {
-            return res.status(400).json({ message: 'All required fields must be provided' });
-        }
-
-        let pdfFilePath = null;
-        if (req.file) {
-            pdfFilePath = `/uploads/exercises/${req.file.filename}`;
-            console.log('PDF file path:', pdfFilePath);
+        const { course_id, lesson_id, title, type, points } = req.body;
+        
+        if (!req.file) {
+            return res.status(400).json({ message: 'PDF file is required' });
         }
 
         const exercise = new Exercise({
             course_id,
             lesson_id,
-            user_id,
-            code,
             title,
             type,
             points,
-            pdfFile: pdfFilePath,
+            pdfFile: `uploads/exercises/${req.file.filename}`
         });
 
         await exercise.save();
-        console.log('Saved exercise:', exercise);
         res.status(201).json(exercise);
     } catch (error) {
-        console.error('Error creating exercise:', error);
+        console.error('Error in createExercise:', error);
         res.status(500).json({ message: 'Error creating exercise' });
     }
 };

@@ -8,7 +8,10 @@ const exerciseSchema = new mongoose.Schema({
     title: { type: String, required: true },
     type: { type: String, enum: ['multiple_choice', 'coding'], required: true },
     points: { type: Number, required: true },
-    pdfFile: { type: String }
+    pdfFile: {
+        type: String,
+        required: true
+    }
 }, {
     timestamps: true
 });
