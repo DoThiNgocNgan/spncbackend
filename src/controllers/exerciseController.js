@@ -10,20 +10,29 @@ const createExercise = async (req, res) => {
             return res.status(400).json({ message: 'PDF file is required' });
         }
 
+        const generateCode = () => {
+            return 'EX' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        };
+
         const exercise = new Exercise({
             course_id,
             lesson_id,
             title,
             type,
             points,
-            pdfFile: `uploads/exercises/${req.file.filename}`
+            pdfFile: `uploads/exercises/${req.file.filename}`,
+            code: generateCode(),
+            user_id: req.user._id
         });
 
         await exercise.save();
         res.status(201).json(exercise);
     } catch (error) {
         console.error('Error in createExercise:', error);
-        res.status(500).json({ message: 'Error creating exercise' });
+        res.status(500).json({ 
+            message: 'Error creating exercise',
+            error: error.message 
+        });
     }
 };
 
