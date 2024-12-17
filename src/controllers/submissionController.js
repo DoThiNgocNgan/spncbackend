@@ -9,7 +9,7 @@ const submitQuiz = async (req, res) => {
       });
     }
 
-    console.log('Request body:', req.body); // Debug log
+    console.log('Request body:', req.body);
 
     const { exercise_id, answers, score } = req.body;
     
@@ -26,7 +26,8 @@ const submitQuiz = async (req, res) => {
       exercise_id,
       user_id,
       answers,
-      score
+      score,
+      type: 'quiz'
     });
 
     await submission.save();
@@ -38,6 +39,49 @@ const submitQuiz = async (req, res) => {
     });
   } catch (error) {
     console.error('Error submitting quiz:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi nộp bài',
+      error: error.message
+    });
+  }
+};
+
+const submitCode = async (req, res) => {
+  try {
+    if (!req.body) {
+      return res.status(400).json({
+        success: false,
+        message: 'Request body is missing'
+      });
+    }
+
+    const { exercise_id, code } = req.body;
+    const user_id = req.user._id;
+    
+    if (!exercise_id || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const submission = new Submission({
+      exercise_id,
+      user_id,
+      code,
+      type: 'coding'
+    });
+
+    await submission.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Nộp bài thành công',
+      submission
+    });
+  } catch (error) {
+    console.error('Error submitting code:', error);
     res.status(500).json({
       success: false,
       message: 'Lỗi khi nộp bài',
@@ -72,4 +116,4 @@ const getSubmissionHistory = async (req, res) => {
   }
 };
 
-module.exports = { submitQuiz, getSubmissionHistory }; 
+module.exports = { submitQuiz, submitCode, getSubmissionHistory }; 

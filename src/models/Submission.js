@@ -13,11 +13,17 @@ const submissionSchema = new mongoose.Schema({
     },
     answers: {
         type: Map,
-        of: String,
-        required: true
+        of: String
+    },
+    code: {
+        type: String
     },
     score: {
-        type: Number,
+        type: Number
+    },
+    type: {
+        type: String,
+        enum: ['quiz', 'coding'],
         required: true
     }
 }, {
