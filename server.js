@@ -14,6 +14,8 @@ const User = require('./src/models/User'); // Import model User
 const bcrypt = require('bcrypt');
 const path = require('path');
 const fs = require('fs');
+const userRoutes = require('./src/routes/userRoutes');
+const submissionRoutes = require('./src/routes/submissionRoutes');
 
 const app = express()
 const corsOptions = {
@@ -36,7 +38,8 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/exercise-testcases', exerciseTestcaseRoutes);
 app.use('/api/student-exercises', studentExerciseRoutes);
 app.use('/api/student-results', studentResultRoutes);
-app.use('/api/submissions', require('./src/routes/submissionRoutes'));
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/users', userRoutes);
 
 // Tạo thư mục uploads nếu chưa tồn tại
 const uploadsPath = path.join(__dirname, 'uploads');

@@ -70,7 +70,8 @@ const submitCode = async (req, res) => {
       exercise_id,
       user_id,
       code,
-      type: 'coding'
+      type: 'coding',
+      feedback: null
     });
 
     await submission.save();

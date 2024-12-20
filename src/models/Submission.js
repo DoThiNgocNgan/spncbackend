@@ -25,6 +25,13 @@ const submissionSchema = new mongoose.Schema({
         type: String,
         enum: ['quiz', 'coding'],
         required: true
+    },
+    feedback: {
+        type: String
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

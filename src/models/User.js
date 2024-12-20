@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   role: { type: String, enum: ["admin", "teacher", "student"], required: true },
+  xp: { type: Number, default: 0 },
+  assignments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'StudentExercise' }]
 });
 
 // Kiểm tra xem mô hình đã tồn tại chưa
