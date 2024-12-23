@@ -102,7 +102,9 @@ const deleteExercise = async (req, res) => {
             }
         }
 
-        await exercise.remove();
+        // Sử dụng findByIdAndDelete thay vì remove()
+        await Exercise.findByIdAndDelete(req.params.id);
+        
         res.json({ message: 'Exercise deleted successfully' });
     } catch (error) {
         console.error('Error in deleteExercise:', error);
