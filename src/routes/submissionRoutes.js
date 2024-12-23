@@ -3,7 +3,10 @@ const router = express.Router();
 const Submission = require('../models/Submission');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
-const { submitCode, getSubmissionHistory } = require('../controllers/submissionController');
+const { submitCode, submitQuiz, getSubmissionHistory } = require('../controllers/submissionController');
+
+// Route submit quiz
+router.post('/quiz', authMiddleware, submitQuiz);
 
 // Route submit code
 router.post('/code', authMiddleware, submitCode);
