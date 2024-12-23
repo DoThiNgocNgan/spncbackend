@@ -1,5 +1,6 @@
 const Lesson = require('../models/Lesson');
 const Document = require('../models/Document');
+const Exercise = require('../models/Exercise');
 
 const createLesson = async (req, res) => {
     try {
@@ -63,4 +64,65 @@ const getLessonById = async (req, res) => {
     }
 };
 
-module.exports = { createLesson, getLessonsByCourse, getLessonById };
+const updateLesson = async (req, res) => {
+    try {
+        const { lessonId } = req.params;
+        const { title, content } = req.body;
+
+        const updatedLesson = await Lesson.findByIdAndUpdate(
+            lessonId,
+            { 
+                title, 
+                content,
+                updated_at: Date.now()
+            },
+            { new: true }
+        );
+
+        if (!updatedLesson) {
+            return res.status(404).json({ message: 'Lesson not found' });
+        }
+
+        res.status(200).json({
+            message: 'Lesson updated successfully',
+            lesson: updatedLesson
+        });
+    } catch (error) {
+        console.error('Error updating lesson:', error);
+        res.status(500).json({ 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
+const deleteLesson = async (req, res) => {
+    try {
+        const { lessonId } = req.params;
+        
+        // Xóa bài học
+        const deletedLesson = await Lesson.findByIdAndDelete(lessonId);
+        
+        if (!deletedLesson) {
+            return res.status(404).json({ message: 'Lesson not found' });
+        }
+
+        // Xóa các tài liệu liên quan
+        await Document.deleteMany({ lesson_id: lessonId });
+        
+        // Xóa các bài tập liên quan
+        await Exercise.deleteMany({ lesson_id: lessonId });
+
+        res.status(200).json({ 
+            message: 'Lesson and related content deleted successfully' 
+        });
+    } catch (error) {
+        console.error('Error deleting lesson:', error);
+        res.status(500).json({ 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+};
+
+module.exports = { createLesson, getLessonsByCourse, getLessonById, updateLesson, deleteLesson };
