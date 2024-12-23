@@ -4,7 +4,8 @@ const upload = require("../config/upload"); // Ensure this is correctly configur
 const {
   uploadDocument,
   getDocumentById,
-  getDocumentsByLesson
+  getDocumentsByLesson,
+  deleteDocument
 } = require("../controllers/documentController");
 const auth = require("../middleware/authMiddleware");
 const role = require("../middleware/roleMiddleware"); // If you are using this, ensure it's applied where needed
@@ -22,5 +23,13 @@ router.get("/:documentId", getDocumentById);
 
 // Route for getting documents by lesson
 router.get("/lesson/:lessonId", getDocumentsByLesson);
+
+// Thêm route xóa tài liệu
+router.delete(
+  "/:documentId",
+  auth,
+  role(['admin', 'teacher']),
+  deleteDocument
+);
 
 module.exports = router;

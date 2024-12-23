@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Document = require("../models/Document");
 const path = require("path");
+const fs = require("fs");
 
 // Upload document
 const uploadDocument = async (req, res) => {
@@ -58,8 +59,35 @@ const getDocumentsByLesson = async (req, res) => {
   }
 };
 
+// Thêm hàm xóa tài liệu
+const deleteDocument = async (req, res) => {
+  const { documentId } = req.params;
+
+  try {
+    const document = await Document.findById(documentId);
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    // Xóa file từ server
+    const filePath = path.join(__dirname, "../../uploads", document.filename);
+    fs.unlink(filePath, async (err) => {
+      if (err) {
+        console.error("Error deleting file:", err);
+      }
+      // Xóa document từ database
+      await Document.findByIdAndDelete(documentId);
+      res.status(200).json({ message: "Document deleted successfully" });
+    });
+  } catch (error) {
+    console.error("Error deleting document:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   uploadDocument,
   getDocumentById,
-  getDocumentsByLesson // Xuất hàm này
+  getDocumentsByLesson,
+  deleteDocument
 };
