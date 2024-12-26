@@ -5,7 +5,7 @@ const path = require('path');
 
 // Cấu hình CORS với options cụ thể hơn
 const corsOptions = {
-    origin: 'http://localhost:5173', // Frontend URL
+    origin: 'http://34.142.187.24:5173', // Frontend URL
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
